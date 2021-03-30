@@ -56,8 +56,6 @@ their descriptions can be seen in `values.yaml`. The [full documentation](https:
 ClamAV uses around 1 GB RAM.
 
 
-
-
 # Virus Definitions
 
 For ClamAV to work properly, both the ClamAV engine and the ClamAV Virus Database (CVD) must be kept up to date.
