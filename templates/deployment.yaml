@@ -24,7 +24,11 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- if .Values.image.digest }}
+          image: "{{ .Values.image.name }}@{{ .Values.image.digest }}"
+          {{- else }}
+          image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
 {{- if .Values.freshclamConfig }}
@@ -38,13 +42,7 @@ spec:
           volumeMounts:
 {{- if .Values.freshclamConfig }}
           - name: freshclam-config-volume
-            mountPath: /etc/clamav/user_conf/freshclam.conf
-            subPath: freshclam.conf
-{{- end }}
-{{- if .Values.clamdConfig }}
-          - name: clamd-config-volume
-            mountPath: /etc/clamav/user_conf/clamd.conf
-            subPath: clamd.conf
+            mountPath: /etc/clamav/user_conf
 {{- end }}
           ports:
             - name: clamavport
@@ -63,13 +61,16 @@ spec:
 {{- if .Values.freshclamConfig }}
       volumes:
         - name: freshclam-config-volume
-          configMap:
-            name: {{ include "clamav.fullname" . }}-freshclam
+          projected:
+            sources:
+              - configMap:
+                  name: {{ include "clamav.fullname" . }}-freshclam
+                  items:
+                  - key: freshclam.conf
+                    path: freshclam.conf
+                  - key: clamd.conf
+                    path: clamd.conf
 {{- end }}
-{{- if .Values.clamdConfig }}
-        - name: clamd-config-volume
-          configMap:
-            name: {{ include "clamav.fullname" . }}-clamd
 {{- end }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
